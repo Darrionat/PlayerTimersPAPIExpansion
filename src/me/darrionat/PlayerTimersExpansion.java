@@ -27,7 +27,7 @@ public class PlayerTimersExpansion extends PlaceholderExpansion {
 
 	@Override
 	public String getVersion() {
-		return "1.0.0";
+		return "1.1.0";
 	}
 
 	/**
@@ -66,21 +66,29 @@ public class PlayerTimersExpansion extends PlaceholderExpansion {
 	 */
 	@Override
 	public String onRequest(OfflinePlayer offlinePlayer, String params) {
-		int n;
+		int id;
+		int place;
+		String[] args = params.split("_");
 		try {
-			n = Integer.parseInt(params);
+			id = Integer.parseInt(args[0]);
+			place = Integer.parseInt(args[1]);
 		} catch (NumberFormatException exe) {
+			exe.printStackTrace();
 			return "Invalid Placeholder";
+		} catch (ArrayIndexOutOfBoundsException exe) {
+			exe.printStackTrace();
+			return "Not enough arguments";
 		}
 
-		List<PlayerTimer> sortedTimes = getSortedExistingTimes();
-		if (sortedTimes.size() >= n && n > 0) {
-			PlayerTimer time = sortedTimes.get(n - 1);
+		List<PlayerTimer> sortedTimes = getSortedExistingTimes(id);
+
+		if (sortedTimes.size() >= place && place > 0) {
+			PlayerTimer time = sortedTimes.get(place - 1);
 			OfflinePlayer player = Bukkit.getOfflinePlayer(time.getPlayer());
 
 			String durationStr = getDurationString(time.getDuration());
 
-			return String.valueOf(n) + " " + player.getName() + ": " + durationStr;
+			return String.valueOf(place) + " " + player.getName() + ": " + durationStr;
 		}
 
 		return null;
@@ -89,11 +97,12 @@ public class PlayerTimersExpansion extends PlaceholderExpansion {
 	/**
 	 * Gets and sorts the existing times from shortest duration to most
 	 * 
+	 * @param id the id of the timer to sort for
 	 * @return returns a list of {@code PlayerTimer} sorted from shortest duration
 	 *         to longest
 	 */
-	public List<PlayerTimer> getSortedExistingTimes() {
-		List<PlayerTimer> list = plugin.getTimesRepository().getAllSavedTimes();
+	public List<PlayerTimer> getSortedExistingTimes(int id) {
+		List<PlayerTimer> list = plugin.getTimesRepository().getSavedTimes(id);
 
 		// Sort the list
 		Collections.sort(list, new Comparator<PlayerTimer>() {
